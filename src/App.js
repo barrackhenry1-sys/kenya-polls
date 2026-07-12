@@ -11,7 +11,7 @@ import SignUp from "./components/SignUp";
 import AdminLogin from "./components/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import logo from "./assets/logo-v2.png";
-import flagBg from "./assets/kenyan hand.png";
+import StarBorder from "./components/StarBorder";
 import "./App.css";
 
 function App() {
@@ -174,14 +174,7 @@ function App() {
 
     if (error) {
       return (
-        <div
-          style={{
-            padding: "20px",
-            color: "red",
-            fontSize: "16px",
-            textAlign: "center",
-          }}
-        >
+        <div style={{ padding: "20px", color: "red", fontSize: "16px", textAlign: "center" }}>
           Error: {error}
         </div>
       );
@@ -189,217 +182,209 @@ function App() {
 
     const fullName =
       session?.user?.user_metadata?.full_name || session?.user?.email || "";
-    const displayName = fullName
+    const initials = fullName
       .split(" ")
-      .map((w) => w.toUpperCase())
-      .join(" ");
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
     return (
-      <div style={{ minHeight: "100vh", background: "#f2f3f7" }}>
-        {/* Header */}
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#e9e9ef",
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          display: "flex",
+          justifyContent: "center",
+          padding: "40px 20px",
+        }}
+      >
         <div
           style={{
-            background: "linear-gradient(135deg, #6f5ce6, #8b7cf0)",
-            padding: "24px 20px 32px",
-            position: "relative",
+            background: "#f7f6f2",
+            borderRadius: 16,
+            overflow: "hidden",
+            maxWidth: 420,
+            width: "100%",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
           }}
         >
+          {/* Header */}
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: "50%",
-                  background: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 6px",
-                  position: "relative",
-                }}
-              >
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="#6f5ce6">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-                </svg>
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: -2,
-                    right: -2,
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    background: "#4c3fe0",
-                    border: "2px solid #fff",
-                  }}
-                />
-              </div>
-              <p
-                style={{
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 0.5,
-                  margin: 0,
-                }}
-              >
-                {displayName}
-              </p>
-            </div>
-
-            <img
-              src={logo}
-              alt="Kenya Polls logo"
-              style={{
-                height: 44,
-                position: "absolute",
-                left: "50%",
-                transform: "translateX(-50%)",
-                top: 20,
-              }}
-            />
-
-            <button
-              onClick={handleSignOut}
-              style={{
-                background: "#1a1a2e",
-                color: "#fff",
-                border: "none",
-                borderRadius: 20,
-                padding: "8px 16px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-                letterSpacing: 0.5,
-              }}
-            >
-              SIGN OUT
-            </button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div style={{ padding: "24px 20px", maxWidth: 480, margin: "0 auto" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 20,
+              background: "#12172b",
+              padding: "20px 20px 16px",
+              position: "relative",
             }}
           >
             <div
               style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 4,
+                background: "linear-gradient(to bottom, #E24B4A 50%, #3B6D11 50%)",
+              }}
+            />
+
+            <div
+              style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
-                flex: 1,
+                justifyContent: "space-between",
               }}
             >
-              <p
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#12172b",
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  {initials}
+                </div>
+                <span style={{ color: "#fff", fontSize: 14, fontWeight: 500 }}>
+                  {fullName}
+                </span>
+              </div>
+
+              <button
+                onClick={handleSignOut}
                 style={{
-                  color: "#4c3fe0",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  color: "#fff",
                   fontSize: 13,
+                  padding: "6px 14px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  transition: "background 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+
+            <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 700, margin: "16px 0 4px" }}>
+              Kenya Polls
+            </h1>
+            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0 }}>
+              Active polls from across the country
+            </p>
+          </div>
+
+          {/* Body */}
+          <div style={{ padding: 20 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12,
                   fontWeight: 700,
-                  letterSpacing: 0.5,
-                  margin: 0,
+                  letterSpacing: "0.05em",
+                  color: "#534AB7",
                 }}
               >
                 ACTIVE POLLS
-              </p>
-              <div style={{ flex: 1, height: 1, background: "#d8d9e3" }} />
-            </div>
-            <Link to="/create" style={{ textDecoration: "none" }}>
-              <button
-                style={{
-                  background: "#1a1a2e",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 20,
-                  padding: "10px 18px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                + New Poll
-              </button>
-            </Link>
-          </div>
-
-          {pollData.map((poll) => {
-            const voted = userVotes[poll.id] !== undefined;
-            return (
-              <Link
-                key={poll.id}
-                to={`/poll/${poll.id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <div
+              </span>
+              <Link to="/create" style={{ textDecoration: "none" }}>
+                <button
                   style={{
-                    background: "#fff",
-                    borderRadius: 14,
-                    padding: "18px 20px",
-                    marginBottom: 14,
+                    background: "#534AB7",
+                    color: "#fff",
+                    border: "none",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    padding: "9px 16px",
+                    borderRadius: 8,
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                    border: voted ? "1px solid #ded9fb" : "1px solid #eceef3",
+                    gap: 6,
+                    cursor: "pointer",
+                    transition: "background 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#453e9c";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#534AB7";
                   }}
                 >
-                  <span
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 15,
-                      color: "#1a1a2e",
-                      flex: 1,
-                    }}
+                  + New poll
+                </button>
+              </Link>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {pollData.map((poll) => {
+                const voted = userVotes[poll.id] !== undefined;
+                return (
+                  <StarBorder
+                    key={poll.id}
+                    as="div"
+                    className={`poll-star-card${voted ? " voted" : ""}`}
+                    color={voted ? "#534AB7" : "#a89ef0"}
+                    speed="4s"
+                    thickness={2}
                   >
-                    {poll.question}
-                  </span>
-                  {voted && (
-                    <span
+                    <Link
+                      to={`/poll/${poll.id}`}
                       style={{
+                        textDecoration: "none",
+                        color: "inherit",
                         display: "flex",
+                        justifyContent: "space-between",
                         alignItems: "center",
-                        gap: 4,
-                        background: "#ece9fd",
-                        color: "#4c3fe0",
-                        padding: "4px 10px",
-                        borderRadius: 20,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        whiteSpace: "nowrap",
-                        marginLeft: 12,
+                        width: "100%",
+                        gap: 12,
                       }}
                     >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#4c3fe0"
-                        strokeWidth="3"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      VOTED
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+                      <span>{poll.question}</span>
+                      {voted && (
+                        <span
+                          style={{
+                            background: "#ece9fd",
+                            color: "#534AB7",
+                            padding: "3px 9px",
+                            borderRadius: 20,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                          }}
+                        >
+                          VOTED
+                        </span>
+                      )}
+                    </Link>
+                  </StarBorder>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -455,7 +440,7 @@ function App() {
         <div className="cinematic-bg">
           <div
             className="cinematic-bg-image"
-            style={{ backgroundImage: `url(${flagBg})` }}
+            style={{ background: "linear-gradient(135deg, #1a1a2e, #2d2d5a)" }}
           />
         </div>
 

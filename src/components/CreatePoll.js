@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
-import kenyanHand from "../assets/kenyan hand.png";
 
 function CreatePoll() {
   const navigate = useNavigate();
@@ -79,7 +78,9 @@ function CreatePoll() {
         <div className="create-header">
           <div
             className="create-header-image"
-            style={{ backgroundImage: `url(${kenyanHand})` }}
+            style={{
+              background: "linear-gradient(135deg, #6f5ce6, #4c3fe0)",
+            }}
           />
           <div className="flag-strip" />
           <div className="create-header-content">
