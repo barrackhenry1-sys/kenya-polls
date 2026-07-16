@@ -32,27 +32,28 @@ function SignIn() {
       style={{
         display: "flex",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "flex-start",
         minHeight: "100vh",
         background: "#f2f3f7",
-        padding: "20px",
+        padding: "clamp(12px, 4vw, 20px)",
       }}
     >
       <div
         style={{
           background: "#fff",
           borderRadius: "20px",
-          padding: "40px 36px",
+          padding: "clamp(16px, 5vw, 40px) clamp(12px, 4vw, 20px)",
           width: "100%",
           maxWidth: "380px",
           boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
           textAlign: "center",
+          marginTop: "20px",
         }}
       >
         <img
           src={logo}
           alt="Kenya Polls logo"
-          style={{ height: "56px", margin: "0 auto 8px", display: "block" }}
+          style={{ height: "clamp(44px, 12vw, 56px)", margin: "0 auto 8px", display: "block" }}
         />
         <p style={{ color: "#6b6f80", fontSize: "13px", marginBottom: "28px" }}>
           Kenya's Voice, Decided Together
@@ -93,6 +94,7 @@ function SignIn() {
                 flex: 1,
                 fontSize: "14px",
                 color: "#1a1a2e",
+                minWidth: 0,
               }}
             />
           </div>
@@ -131,11 +133,12 @@ function SignIn() {
                 flex: 1,
                 fontSize: "14px",
                 color: "#1a1a2e",
+                minWidth: 0,
               }}
             />
             <span
               onClick={() => setShowPassword(!showPassword)}
-              style={{ cursor: "pointer", fontSize: "12px", color: "#9096a8" }}
+              style={{ cursor: "pointer", fontSize: "12px", color: "#9096a8", flexShrink: 0 }}
             >
               {showPassword ? "Hide" : "Show"}
             </span>

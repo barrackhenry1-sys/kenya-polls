@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
 
@@ -9,8 +9,14 @@ function CreatePoll() {
   const [ends, setEnds] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState(null);
 
-  // Current local datetime formatted for the datetime-local input's min attribute
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user?.id || null);
+    });
+  }, []);
+
   function getMinDateTime() {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -54,6 +60,11 @@ function CreatePoll() {
       return;
     }
 
+    if (!userId) {
+      setError("You must be signed in to create a poll");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -62,6 +73,7 @@ function CreatePoll() {
       options: filledOptions,
       votes: new Array(filledOptions.length).fill(0),
       ends: endsDate.toISOString(),
+      created_by: userId,
     });
 
     if (error) {

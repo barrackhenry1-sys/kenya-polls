@@ -12,17 +12,17 @@ function Landing() {
         alignItems: "center",
         minHeight: "100vh",
         background: "#f2f3f7",
-        padding: "20px",
+        padding: "clamp(16px, 5vw, 40px) clamp(12px, 4vw, 20px)",
       }}
     >
       <div style={{ textAlign: "center", maxWidth: "360px" }}>
         <img
           src={logo}
           alt="Kenya Polls logo"
-          style={{ height: "80px", margin: "0 auto 24px", display: "block" }}
+          style={{ height: "clamp(56px, 18vw, 80px)", margin: "0 auto 24px", display: "block" }}
         />
         <h1
-          style={{ color: "#1a1a2e", fontSize: "22px", marginBottom: "12px" }}
+          style={{ color: "#1a1a2e", fontSize: "clamp(19px, 5.5vw, 22px)", marginBottom: "12px" }}
         >
           Voice of the People
         </h1>

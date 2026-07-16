@@ -12,7 +12,10 @@ import AdminLogin from "./components/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import logo from "./assets/logo-v2.png";
 import StarBorder from "./components/StarBorder";
+import MyPolls from "./components/MyPolls";
+import GlareHover from './components/GlareHover';
 import "./App.css";
+
 
 function App() {
   const [pollData, setPollData] = useState([]);
@@ -152,243 +155,342 @@ function App() {
     await supabase.auth.signOut();
   }
 
-  function HomeScreen() {
-    if (loading) {
-      return (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-            color: "#9d90f5",
-            fontSize: "18px",
-            fontWeight: 600,
-            background: "#0a0a1a",
-          }}
-        >
-          Loading polls...
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div style={{ padding: "20px", color: "red", fontSize: "16px", textAlign: "center" }}>
-          Error: {error}
-        </div>
-      );
-    }
-
-    const fullName =
-      session?.user?.user_metadata?.full_name || session?.user?.email || "";
-    const initials = fullName
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-
+ function HomeScreen() {
+  if (loading) {
     return (
       <div
         style={{
-          minHeight: "100vh",
-          background: "#e9e9ef",
-          fontFamily:
-            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           display: "flex",
           justifyContent: "center",
-          padding: "40px 20px",
+          alignItems: "center",
+          height: "100vh",
+          color: "#9d90f5",
+          fontSize: "18px",
+          fontWeight: 600,
+          background: "#0a0a1a",
         }}
       >
-        <div
-          style={{
-            background: "#f7f6f2",
-            borderRadius: 16,
-            overflow: "hidden",
-            maxWidth: 420,
-            width: "100%",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-          }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              background: "#12172b",
-              padding: "20px 20px 16px",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: 4,
-                background: "linear-gradient(to bottom, #E24B4A 50%, #3B6D11 50%)",
-              }}
-            />
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#12172b",
-                    fontWeight: 600,
-                    fontSize: 13,
-                  }}
-                >
-                  {initials}
-                </div>
-                <span style={{ color: "#fff", fontSize: 14, fontWeight: 500 }}>
-                  {fullName}
-                </span>
-              </div>
-
-              <button
-                onClick={handleSignOut}
-                style={{
-                  background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  color: "#fff",
-                  fontSize: 13,
-                  padding: "6px 14px",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  transition: "background 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                }}
-              >
-                Sign out
-              </button>
-            </div>
-
-            <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 700, margin: "16px 0 4px" }}>
-              Kenya Polls
-            </h1>
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0 }}>
-              Active polls from across the country
-            </p>
-          </div>
-
-          {/* Body */}
-          <div style={{ padding: 20 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 16,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: "0.05em",
-                  color: "#534AB7",
-                }}
-              >
-                ACTIVE POLLS
-              </span>
-              <Link to="/create" style={{ textDecoration: "none" }}>
-                <button
-                  style={{
-                    background: "#534AB7",
-                    color: "#fff",
-                    border: "none",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    padding: "9px 16px",
-                    borderRadius: 8,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    cursor: "pointer",
-                    transition: "background 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#453e9c";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#534AB7";
-                  }}
-                >
-                  + New poll
-                </button>
-              </Link>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {pollData.map((poll) => {
-                const voted = userVotes[poll.id] !== undefined;
-                return (
-                  <StarBorder
-                    key={poll.id}
-                    as="div"
-                    className={`poll-star-card${voted ? " voted" : ""}`}
-                    color={voted ? "#534AB7" : "#a89ef0"}
-                    speed="4s"
-                    thickness={2}
-                  >
-                    <Link
-                      to={`/poll/${poll.id}`}
-                      style={{
-                        textDecoration: "none",
-                        color: "inherit",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        width: "100%",
-                        gap: 12,
-                      }}
-                    >
-                      <span>{poll.question}</span>
-                      {voted && (
-                        <span
-                          style={{
-                            background: "#ece9fd",
-                            color: "#534AB7",
-                            padding: "3px 9px",
-                            borderRadius: 20,
-                            fontSize: 10,
-                            fontWeight: 700,
-                            whiteSpace: "nowrap",
-                            flexShrink: 0,
-                          }}
-                        >
-                          VOTED
-                        </span>
-                      )}
-                    </Link>
-                  </StarBorder>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        Loading polls...
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div style={{ padding: "20px", color: "red", fontSize: "16px", textAlign: "center" }}>
+        Error: {error}
+      </div>
+    );
+  }
+
+  const fullName =
+    session?.user?.user_metadata?.full_name || session?.user?.email || "";
+  const initials = fullName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#e9e9ef",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        display: "flex",
+        justifyContent: "center",
+        padding: "clamp(16px, 5vw, 40px) clamp(12px, 4vw, 20px)",
+      }}
+    >
+      <div
+        style={{
+          background: "#f7f6f2",
+          borderRadius: 16,
+          overflow: "hidden",
+          maxWidth: 420,
+          width: "100%",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+        }}
+      >
+        {/* Header — GlareHover applied here ONLY, nothing outside this block changed */}
+        <GlareHover
+          width="100%"
+          height="auto"
+          background="linear-gradient(135deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%)"
+          borderRadius="0px"
+          borderColor="rgba(255,255,255,0.08)"
+          glareColor="#8ecbff"
+          glareOpacity={0.35}
+          glareAngle={-30}
+          glareSize={300}
+          transitionDuration={1400}
+          style={{
+            display: "block",
+            padding: "clamp(20px, 5vw, 32px) 20px clamp(16px, 4vw, 24px)",
+            position: "relative",
+            boxSizing: "border-box",
+            boxShadow:
+              "inset 0 2px 12px rgba(0,0,0,0.35), inset 0 -1px 0 rgba(255,255,255,0.08)",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              background: "linear-gradient(to bottom, #E24B4A 50%, #3B6D11 50%)",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "clamp(16px, 5vw, 28px)",
+              width: "100%",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, paddingRight: 16 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#12172b",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  flexShrink: 0,
+                }}
+              >
+                {initials}
+              </div>
+              <span
+                style={{
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {fullName}
+              </span>
+            </div>
+
+            <button
+              onClick={handleSignOut}
+              style={{
+                background: "linear-gradient(180deg, #2b2b2f, #131316)",
+                border: "1px solid #050506",
+                color: "#f2f2f2",
+                fontSize: 13,
+                padding: "6px 14px",
+                borderRadius: 6,
+                cursor: "pointer",
+                transition: "background 0.15s ease, transform 0.15s ease",
+                flexShrink: 0,
+                marginLeft: "auto",
+                paddingLeft: 16,
+                boxShadow:
+                  "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 4px rgba(0,0,0,0.6), 0 4px 10px rgba(0,0,0,0.45)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(180deg, #3a3a3f, #1c1c1f)";
+                e.currentTarget.style.transform = "scale(1.04)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(180deg, #2b2b2f, #131316)";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+
+          <h1 style={{ color: "#fff", fontSize: "clamp(19px, 5vw, 24px)", fontWeight: 700, margin: "0 0 6px", width: "100%" }}>
+            Kenya Polls
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0, width: "100%" }}>
+            Active polls from across the country
+          </p>
+        </GlareHover>
+
+        {/* Body — untouched */}
+        <div style={{ padding: 20 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                color: "#534AB7",
+              }}
+            >
+              ACTIVE POLLS
+            </span>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <Link to="/my-polls" style={{ textDecoration: "none" }}>
+                <GlareHover
+                  width="auto"
+                  height="auto"
+                  background="transparent"
+                  borderRadius="8px"
+                  borderColor="#534AB7"
+                  glareColor="#ffffff"
+                  glareOpacity={0.7}
+                  glareAngle={-30}
+                  glareSize={260}
+                  transitionDuration={1600}
+                  style={{
+                    display: "inline-block",
+                    boxShadow:
+                      "inset 0 2px 5px rgba(0,0,0,0.08), 0 4px 10px rgba(83,74,183,0.18)",
+                  }}
+                >
+                  <button
+                    style={{
+                      background: "transparent",
+                      color: "#534AB7",
+                      border: "none",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      transition: "transform 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.04)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    My Polls
+                  </button>
+                </GlareHover>
+              </Link>
+
+              <Link to="/create" style={{ textDecoration: "none" }}>
+                <GlareHover
+                  width="auto"
+                  height="auto"
+                  background="#534AB7"
+                  borderRadius="8px"
+                  borderColor="rgba(255,255,255,0.15)"
+                  glareColor="#ffffff"
+                  glareOpacity={0.55}
+                  glareAngle={-30}
+                  glareSize={260}
+                  transitionDuration={1600}
+                  style={{
+                    display: "inline-block",
+                    boxShadow:
+                      "inset 0 2px 5px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.15), 0 6px 14px rgba(83,74,183,0.35)",
+                  }}
+                >
+                  <button
+                    style={{
+                      background: "transparent",
+                      color: "#fff",
+                      border: "none",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      padding: "9px 16px",
+                      borderRadius: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      cursor: "pointer",
+                      transition: "transform 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.04)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    + New poll
+                  </button>
+                </GlareHover>
+              </Link>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {pollData.map((poll) => {
+              const voted = userVotes[poll.id] !== undefined;
+              return (
+                <StarBorder
+                  key={poll.id}
+                  as="div"
+                  className={`poll-star-card${voted ? " voted" : ""}`}
+                  color={voted ? "#534AB7" : "#a89ef0"}
+                  speed="4s"
+                  thickness={2}
+                >
+                  <Link
+                    to={`/poll/${poll.id}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      width: "100%",
+                      gap: 12,
+                    }}
+                  >
+                    <span>{poll.question}</span>
+                    {voted && (
+                      <span
+                        style={{
+                          background: "#ece9fd",
+                          color: "#534AB7",
+                          padding: "3px 9px",
+                          borderRadius: 20,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
+                        }}
+                      >
+                        VOTED
+                      </span>
+                    )}
+                  </Link>
+                </StarBorder>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   function PollDetailScreen() {
     const { id } = useParams();
@@ -464,8 +566,25 @@ function App() {
             )}
 
             {activeTab === "results" && (
-              <ResultsCard poll={poll} userVote={userVotes[poll.id]} />
-            )}
+  userVotes[poll.id] !== undefined ? (
+    <ResultsCard poll={poll} userVote={userVotes[poll.id]} />
+  ) : (
+    <div
+      style={{
+        textAlign: "center",
+        padding: "40px 20px",
+        color: "#6b6f80",
+      }}
+    >
+      <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, color: "#1a1a1a" }}>
+         Vote to see results
+      </p>
+      <p style={{ fontSize: 13 }}>
+        Cast your vote on this poll first, then come back here to see how everyone else voted.
+      </p>
+    </div>
+  )
+)}
           </div>
         </div>
       </div>
@@ -504,6 +623,10 @@ function App() {
       <Route
         path="/create"
         element={session ? <CreatePoll /> : <Navigate to="/welcome" />}
+      />
+      <Route
+        path="/my-polls"
+        element={session ? <MyPolls /> : <Navigate to="/welcome" />}
       />
       <Route
         path="/poll/:id"

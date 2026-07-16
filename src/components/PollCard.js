@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 function PollCard({ poll, userVote, onVote }) {
   function parseOptions(raw) {
     if (Array.isArray(raw)) return raw;
@@ -39,22 +41,55 @@ function PollCard({ poll, userVote, onVote }) {
     });
   };
 
+  // Local selection before submitting — not yet sent to the server
+  const [selected, setSelected] = useState(userVote ?? null);
+
+  useEffect(() => {
+    setSelected(userVote ?? null);
+  }, [userVote]);
+
+  function handleSubmit() {
+    if (selected === null) return;
+    onVote(poll.id, selected);
+  }
+
+  function handleChangeVote() {
+    onVote(poll.id, null); // unvote, unlocks selection again
+  }
+
   return (
     <div className="poll-card">
       <p className="poll-question">{poll.question}</p>
 
       {options.map((opt, i) => {
         const pct = total > 0 ? Math.round((votes[i] / total) * 100) : 0;
-        const isSelected = userVote === i;
+        const isSelected = selected === i;
+
+        if (voted) {
+          return (
+            <div key={i} className="poll-option voted">
+              <div className="option-row">
+                <span>{opt}</span>
+                <span className="pct">{pct}%</span>
+              </div>
+              <div className="mini-bar-bg">
+                <div
+                  className="mini-bar-fill"
+                  style={{
+                    width: `${pct}%`,
+                    background: isSelected ? "#fff" : "rgba(255,255,255,0.4)",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        }
 
         return (
           <label
             key={i}
-            className={`poll-option${voted ? " voted" : ""}`}
-            style={{
-              display: "block",
-              cursor: "pointer",
-            }}
+            className="poll-option"
+            style={{ display: "block", cursor: "pointer" }}
           >
             <div
               className="option-row"
@@ -64,28 +99,72 @@ function PollCard({ poll, userVote, onVote }) {
                 type="radio"
                 name={`poll-${poll.id}`}
                 checked={isSelected}
-                onChange={() => {}}
-                onClick={() => onVote(poll.id, isSelected ? null : i)}
+                onChange={() => setSelected(i)}
                 style={{ width: "16px", height: "16px", flexShrink: 0 }}
               />
               <span style={{ flex: 1 }}>{opt}</span>
-              {voted && <span className="pct">{pct}%</span>}
             </div>
-
-            {voted && (
-              <div className="mini-bar-bg" style={{ marginTop: "6px" }}>
-                <div
-                  className="mini-bar-fill"
-                  style={{
-                    width: `${pct}%`,
-                    background: isSelected ? "#fff" : "rgba(255,255,255,0.4)",
-                  }}
-                />
-              </div>
-            )}
           </label>
         );
       })}
+
+      {!voted && (
+        <button
+          onClick={handleSubmit}
+          disabled={selected === null}
+          style={{
+            width: "100%",
+            marginTop: 12,
+            padding: "12px",
+            background: selected === null ? "#e4e4e8" : "#c8c9d1",
+            color: selected === null ? "#a6a6b0" : "#33333d",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: selected === null ? "not-allowed" : "pointer",
+            boxShadow:
+              selected === null
+                ? "inset 0 1px 3px rgba(0,0,0,0.06)"
+                : "inset 0 1px 3px rgba(0,0,0,0.15), inset 0 -1px 1px rgba(255,255,255,0.4)",
+            transition: "background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease",
+          }}
+          onMouseEnter={(e) => {
+            if (selected === null) return;
+            e.currentTarget.style.background = "#b8b9c3";
+            e.currentTarget.style.boxShadow =
+              "inset 0 1px 4px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(255,255,255,0.4)";
+          }}
+          onMouseLeave={(e) => {
+            if (selected === null) return;
+            e.currentTarget.style.background = "#c8c9d1";
+            e.currentTarget.style.boxShadow =
+              "inset 0 1px 3px rgba(0,0,0,0.15), inset 0 -1px 1px rgba(255,255,255,0.4)";
+          }}
+        >
+          Submit Vote
+        </button>
+      )}
+
+      {voted && (
+        <button
+          onClick={handleChangeVote}
+          style={{
+            width: "100%",
+            marginTop: 12,
+            padding: "10px",
+            background: "transparent",
+            color: "#534AB7",
+            border: "1px solid #534AB7",
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: "pointer",
+          }}
+        >
+          Change my vote
+        </button>
+      )}
 
       <div className="poll-meta">
         <span>Ends {fmtDate(poll.ends)}</span>
