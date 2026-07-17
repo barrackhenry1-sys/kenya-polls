@@ -15,6 +15,13 @@ function ResetPassword() {
   // password-recovery session (from the emailed link), not just
   // any logged-in session.
   useEffect(() => {
+    // Supabase may parse the recovery token from the URL and fire
+    // PASSWORD_RECOVERY before this component mounts and subscribes,
+    // so also check the URL hash directly as a fallback.
+    if (window.location.hash.includes("type=recovery")) {
+      setReady(true);
+    }
+
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event) => {
         if (event === "PASSWORD_RECOVERY") {
