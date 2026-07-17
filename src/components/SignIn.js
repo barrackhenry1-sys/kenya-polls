@@ -111,6 +111,15 @@ function SignIn() {
           <div style={{ flex: 1, height: 1, background: "#e0e1e8" }} />
         </div>
 
+        <div style={{ textAlign: "right", marginBottom: 8 }}>
+          <Link
+            to="/forgot-password"
+            style={{ fontSize: 12, color: "#4c3fe0", fontWeight: 600, textDecoration: "none" }}
+          >
+            Forgot password?
+          </Link>
+        </div>
+
         <form onSubmit={handleLogin} style={{ textAlign: "left" }}>
           <label
             style={{

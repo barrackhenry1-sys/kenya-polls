@@ -13,6 +13,12 @@ function SignUp() {
   const [website, setWebsite] = useState(""); // honeypot — real users never fill this
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState("form"); // "form" | "verify"
+  const [code, setCode] = useState("");
+  const [verifyError, setVerifyError] = useState(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState(null);
 
   function validPassword(pw) {
     return pw.length >= 8 && /\d/.test(pw);
@@ -59,7 +65,182 @@ function SignUp() {
       return;
     }
 
+    setStep("verify");
+  }
+
+  async function handleVerifyCode(e) {
+    e.preventDefault();
+    setVerifyError(null);
+
+    if (!code.trim()) {
+      setVerifyError("Enter the code we emailed you");
+      return;
+    }
+
+    setVerifyLoading(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code.trim(),
+      type: "signup",
+    });
+    setVerifyLoading(false);
+
+    if (error) {
+      setVerifyError(error.message);
+      return;
+    }
+
     navigate("/");
+  }
+
+  async function handleResendCode() {
+    setResendMessage(null);
+    setVerifyError(null);
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+    });
+    setResendLoading(false);
+
+    if (error) {
+      setVerifyError(error.message);
+      return;
+    }
+    setResendMessage("A new code is on its way.");
+  }
+
+  if (step === "verify") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          minHeight: "100vh",
+          background: "#f2f3f7",
+          padding: "clamp(16px, 5vw, 40px) clamp(12px, 4vw, 20px)",
+        }}
+      >
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: "20px",
+            width: "100%",
+            maxWidth: "380px",
+            overflow: "hidden",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
+            marginTop: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #6f5ce6, #4c3fe0)",
+              padding: "clamp(24px, 7vw, 36px) clamp(16px, 5vw, 24px)",
+              textAlign: "center",
+            }}
+          >
+            <h1 style={{ color: "#fff", fontSize: "22px", fontWeight: 700, margin: 0 }}>
+              Verify your email
+            </h1>
+          </div>
+
+          <form
+            onSubmit={handleVerifyCode}
+            style={{
+              padding: "clamp(18px, 6vw, 28px) clamp(18px, 6vw, 28px) clamp(20px, 6vw, 32px)",
+            }}
+          >
+            <p style={{ fontSize: 13, color: "#6b6f80", marginBottom: 20, lineHeight: 1.5 }}>
+              We've sent a 6-digit code to <strong>{email}</strong>. Enter it
+              below to confirm your account.
+            </p>
+
+            <label
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#1a1a2e",
+                display: "block",
+                marginBottom: 6,
+              }}
+            >
+              Verification Code
+            </label>
+            <div
+              style={{
+                border: "1px solid #e0e1e8",
+                borderRadius: 10,
+                padding: "10px 12px",
+                marginBottom: 16,
+              }}
+            >
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="123456"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  width: "100%",
+                  fontSize: 20,
+                  letterSpacing: "0.4em",
+                  textAlign: "center",
+                  color: "#1a1a2e",
+                }}
+              />
+            </div>
+
+            {verifyError && (
+              <p style={{ color: "#e0405c", fontSize: 13, marginBottom: 12 }}>
+                {verifyError}
+              </p>
+            )}
+            {resendMessage && (
+              <p style={{ color: "#4c3fe0", fontSize: 13, marginBottom: 12, fontWeight: 600 }}>
+                {resendMessage}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={verifyLoading}
+              style={{
+                width: "100%",
+                padding: 13,
+                background: "#4c3fe0",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                marginBottom: 16,
+              }}
+            >
+              {verifyLoading ? "Verifying..." : "Verify & Continue"}
+            </button>
+
+            <p style={{ fontSize: 13, color: "#6b6f80", textAlign: "center" }}>
+              Didn't get it?{" "}
+              <span
+                onClick={resendLoading ? undefined : handleResendCode}
+                style={{
+                  color: "#4c3fe0",
+                  fontWeight: 600,
+                  cursor: resendLoading ? "default" : "pointer",
+                  opacity: resendLoading ? 0.6 : 1,
+                }}
+              >
+                {resendLoading ? "Sending..." : "Resend code"}
+              </span>
+            </p>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   return (

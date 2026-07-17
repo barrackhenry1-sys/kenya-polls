@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useParams, Link, Navigate } from "react-router-dom";
 import { supabase } from "./supabase";
-import TabBar from "./components/TabBar";
 import PollCard from "./components/PollCard";
-import ResultsCard from "./components/ResultsCard";
 import CreatePoll from "./components/CreatePoll";
 import Landing from "./components/Landing";
 import SignIn from "./components/SignIn";
@@ -12,7 +10,9 @@ import AdminLogin from "./components/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import logo from "./assets/logo-v2.png";
 import StarBorder from "./components/StarBorder";
+import ResetPassword from "./components/ResetPassword";
 import MyPolls from "./components/MyPolls";
+import ForgotPassword from "./components/ForgotPassword";
 import GlareHover from './components/GlareHover';
 import "./App.css";
 
@@ -494,7 +494,6 @@ function App() {
 
   function PollDetailScreen() {
     const { id } = useParams();
-    const [activeTab, setActiveTab] = useState("vote");
     const poll = pollData.find((p) => String(p.id) === id);
 
     if (loading) {
@@ -555,36 +554,11 @@ function App() {
           </div>
 
           <div className="home-body">
-            <TabBar activeTab={activeTab} onSwitch={setActiveTab} />
-
-            {activeTab === "vote" && (
-              <PollCard
-                poll={poll}
-                userVote={userVotes[poll.id]}
-                onVote={handleVote}
-              />
-            )}
-
-            {activeTab === "results" && (
-  userVotes[poll.id] !== undefined ? (
-    <ResultsCard poll={poll} userVote={userVotes[poll.id]} />
-  ) : (
-    <div
-      style={{
-        textAlign: "center",
-        padding: "40px 20px",
-        color: "#6b6f80",
-      }}
-    >
-      <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, color: "#1a1a1a" }}>
-         Vote to see results
-      </p>
-      <p style={{ fontSize: 13 }}>
-        Cast your vote on this poll first, then come back here to see how everyone else voted.
-      </p>
-    </div>
-  )
-)}
+            <PollCard
+              poll={poll}
+              userVote={userVotes[poll.id]}
+              onVote={handleVote}
+            />
           </div>
         </div>
       </div>
@@ -601,42 +575,46 @@ function App() {
 
   return (
     <Routes>
-      {/* Public landing + auth pages */}
-      <Route
-        path="/welcome"
-        element={session ? <Navigate to="/" /> : <Landing />}
-      />
-      <Route
-        path="/signin"
-        element={session ? <Navigate to="/" /> : <SignIn />}
-      />
-      <Route
-        path="/signup"
-        element={session ? <Navigate to="/" /> : <SignUp />}
-      />
+  <Route
+    path="/welcome"
+    element={session ? <Navigate to="/" /> : <Landing />}
+  />
+  <Route
+    path="/signin"
+    element={session ? <Navigate to="/" /> : <SignIn />}
+  />
+  <Route
+    path="/signup"
+    element={session ? <Navigate to="/" /> : <SignUp />}
+  />
+  <Route
+    path="/forgot-password"
+    element={session ? <Navigate to="/" /> : <ForgotPassword />}
+  />
+  <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Main app — requires login */}
-      <Route
-        path="/"
-        element={session ? <HomeScreen /> : <Navigate to="/welcome" />}
-      />
-      <Route
-        path="/create"
-        element={session ? <CreatePoll /> : <Navigate to="/welcome" />}
-      />
-      <Route
-        path="/my-polls"
-        element={session ? <MyPolls /> : <Navigate to="/welcome" />}
-      />
-      <Route
-        path="/poll/:id"
-        element={session ? <PollDetailScreen /> : <Navigate to="/welcome" />}
-      />
+  {/* Main app — requires login */}
+  <Route
+    path="/"
+    element={session ? <HomeScreen /> : <Navigate to="/welcome" />}
+  />
+  <Route
+    path="/create"
+    element={session ? <CreatePoll /> : <Navigate to="/welcome" />}
+  />
+  <Route
+    path="/my-polls"
+    element={session ? <MyPolls /> : <Navigate to="/welcome" />}
+  />
+  <Route
+    path="/poll/:id"
+    element={session ? <PollDetailScreen /> : <Navigate to="/welcome" />}
+  />
 
-      {/* Admin */}
-      <Route path="/admin" element={<AdminLogin />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-    </Routes>
+  {/* Admin */}
+  <Route path="/admin" element={<AdminLogin />} />
+  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+</Routes>
   );
 }
 
