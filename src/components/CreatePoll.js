@@ -6,7 +6,6 @@ function CreatePoll() {
   const navigate = useNavigate();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const [ends, setEnds] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -16,12 +15,6 @@ function CreatePoll() {
       setUserId(data.session?.user?.id || null);
     });
   }, []);
-
-  function getMinDateTime() {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    return now.toISOString().slice(0, 16);
-  }
 
   function handleOptionChange(index, value) {
     const newOptions = [...options];
@@ -49,16 +42,6 @@ function CreatePoll() {
       setError("Please enter at least 2 options");
       return;
     }
-    if (!ends) {
-      setError("Please enter an end date");
-      return;
-    }
-
-    const endsDate = new Date(ends);
-    if (endsDate <= new Date()) {
-      setError("End date must be in the future");
-      return;
-    }
 
     if (!userId) {
       setError("You must be signed in to create a poll");
@@ -72,7 +55,6 @@ function CreatePoll() {
       question: question.trim(),
       options: filledOptions,
       votes: new Array(filledOptions.length).fill(0),
-      ends: endsDate.toISOString(),
       created_by: userId,
     });
 
@@ -153,20 +135,6 @@ function CreatePoll() {
                 + Add option
               </button>
             )}
-          </div>
-
-          <div className="create-field">
-            <label className="create-label">End date</label>
-            <input
-              className="create-input"
-              type="datetime-local"
-              min={getMinDateTime()}
-              value={ends}
-              onChange={(e) => setEnds(e.target.value)}
-            />
-            <p className="create-hint">
-              Voting closes automatically at this time.
-            </p>
           </div>
 
           {error && <p className="create-error">{error}</p>}

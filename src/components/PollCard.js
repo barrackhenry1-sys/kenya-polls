@@ -167,7 +167,7 @@ function PollCard({ poll, userVote, onVote }) {
       )}
 
       <div className="poll-meta">
-        <span>Ends {fmtDate(poll.ends)}</span>
+        <span>Created {fmtDate(poll.created_at)}</span>
         <span>{fmtVotes(total)} votes</span>
       </div>
 

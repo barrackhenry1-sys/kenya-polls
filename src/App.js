@@ -13,6 +13,7 @@ import StarBorder from "./components/StarBorder";
 import ResetPassword from "./components/ResetPassword";
 import MyPolls from "./components/MyPolls";
 import ForgotPassword from "./components/ForgotPassword";
+import EditProfile from "./components/EditProfile";
 import GlareHover from './components/GlareHover';
 import "./App.css";
 
@@ -24,6 +25,8 @@ function App() {
   const [error, setError] = useState(null);
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
 
   // Track login session
   useEffect(() => {
@@ -38,6 +41,25 @@ function App() {
     );
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // Check if the logged-in user is an admin
+  useEffect(() => {
+    async function checkAdmin() {
+      if (!session) {
+        setIsAdmin(false);
+        setAdminChecked(true);
+        return;
+      }
+      const { data } = await supabase
+        .from("admins")
+        .select("user_id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      setIsAdmin(!!data);
+      setAdminChecked(true);
+    }
+    checkAdmin();
+  }, [session]);
 
   // Load all polls
   useEffect(() => {
@@ -89,66 +111,40 @@ function App() {
 
   async function handleVote(pollId, optionIdx) {
     if (!session) return;
-    const userId = session.user.id;
-    const previousVote = userVotes[pollId];
 
-    const poll = pollData.find((p) => p.id === pollId);
-    const votes = Array.isArray(poll.votes)
-      ? [...poll.votes]
-      : poll.votes.replace(/^{|}$/g, "").split(",").map(Number);
+    const { error } = await supabase.rpc("cast_vote", {
+      p_poll_id: pollId,
+      p_option_idx: optionIdx,
+    });
 
-    // Unvote
-    if (optionIdx === null) {
-      if (previousVote === undefined) return;
-
-      votes[previousVote] = Math.max(0, votes[previousVote] - 1);
-
-      await supabase
-        .from("user_votes")
-        .delete()
-        .eq("user_id", userId)
-        .eq("poll_id", pollId);
-      await supabase.from("polls").update({ votes }).eq("id", pollId);
-      await supabase.from("vote_logs").insert({
-        poll_id: pollId,
-        option_index: previousVote,
-        action: "unvote",
-      });
-
-      const newUserVotes = { ...userVotes };
-      delete newUserVotes[pollId];
-      setUserVotes(newUserVotes);
-
-      setPollData((prev) =>
-        prev.map((p) => (p.id !== pollId ? p : { ...p, votes }))
-      );
+    if (error) {
+      setError(error.message);
       return;
     }
 
-    if (previousVote === optionIdx) return;
+    // Pull the authoritative vote counts back from the server —
+    // the client never computes or sends vote totals itself now.
+    const { data: updatedPoll, error: fetchError } = await supabase
+      .from("polls")
+      .select("*")
+      .eq("id", pollId)
+      .single();
 
-    if (previousVote !== undefined) {
-      votes[previousVote] = Math.max(0, votes[previousVote] - 1);
-    }
-    votes[optionIdx] += 1;
-
-    await supabase
-      .from("user_votes")
-      .upsert(
-        { user_id: userId, poll_id: pollId, option_index: optionIdx },
-        { onConflict: "user_id,poll_id" }
+    if (!fetchError && updatedPoll) {
+      setPollData((prev) =>
+        prev.map((p) => (p.id === pollId ? updatedPoll : p))
       );
-    await supabase.from("polls").update({ votes }).eq("id", pollId);
-    await supabase.from("vote_logs").insert({
-      poll_id: pollId,
-      option_index: optionIdx,
-      action: previousVote !== undefined ? "switch" : "vote",
-    });
+    }
 
-    setUserVotes((prev) => ({ ...prev, [pollId]: optionIdx }));
-    setPollData((prev) =>
-      prev.map((p) => (p.id !== pollId ? p : { ...p, votes }))
-    );
+    if (optionIdx === null) {
+      setUserVotes((prev) => {
+        const next = { ...prev };
+        delete next[pollId];
+        return next;
+      });
+    } else {
+      setUserVotes((prev) => ({ ...prev, [pollId]: optionIdx }));
+    }
   }
 
   async function handleSignOut() {
@@ -255,7 +251,10 @@ function App() {
               width: "100%",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, paddingRight: 16 }}>
+            <Link
+              to="/edit-profile"
+              style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, paddingRight: 16, textDecoration: "none" }}
+            >
               <div
                 style={{
                   width: 36,
@@ -285,7 +284,7 @@ function App() {
               >
                 {fullName}
               </span>
-            </div>
+            </Link>
 
             <button
               onClick={handleSignOut}
@@ -592,6 +591,10 @@ function App() {
     element={session ? <Navigate to="/" /> : <ForgotPassword />}
   />
   <Route path="/reset-password" element={<ResetPassword />} />
+  <Route
+    path="/edit-profile"
+    element={session ? <EditProfile session={session} /> : <Navigate to="/welcome" />}
+  />
 
   {/* Main app — requires login */}
   <Route
@@ -612,8 +615,16 @@ function App() {
   />
 
   {/* Admin */}
-  <Route path="/admin" element={<AdminLogin />} />
-  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  <Route
+    path="/admin"
+    element={isAdmin ? <Navigate to="/admin/dashboard" /> : <AdminLogin />}
+  />
+  <Route
+    path="/admin/dashboard"
+    element={
+      adminChecked && isAdmin ? <AdminDashboard /> : <Navigate to="/admin" />
+    }
+  />
 </Routes>
   );
 }
