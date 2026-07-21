@@ -58,7 +58,7 @@ function AdminDashboard() {
   }
 
   function creatorLabel(poll) {
-    if (!poll.created_by) return "Unknown (legacy poll)";
+    if (!poll.created_by) return "Anonymous (widget)";
     const profile = profileMap[poll.created_by];
     if (!profile) return "Unknown (no profile record)";
     return profile.full_name || profile.email || "Unknown";
@@ -101,26 +101,52 @@ function AdminDashboard() {
     setExpandedVoters(poll.id);
     setVotersLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_votes")
-      .select("user_id, option_index, voted_at")
-      .eq("poll_id", poll.id)
-      .order("voted_at", { ascending: false });
+    const options = parseOptions(poll.options);
 
-    if (!error && data) {
-      const options = parseOptions(poll.options);
-      const enriched = data.map((v) => {
-        const profile = profileMap[v.user_id];
-        return {
-          ...v,
-          label: profile?.full_name || profile?.email || v.user_id,
-          email: profile?.email || "—",
-          optionText: options[v.option_index] ?? `Option ${v.option_index + 1}`,
-        };
-      });
-      setVoters(enriched);
-    }
+    const [registeredRes, anonRes] = await Promise.all([
+      supabase
+        .from("user_votes")
+        .select("user_id, option_index, voted_at")
+        .eq("poll_id", poll.id),
+      supabase
+        .from("anon_votes")
+        .select("voter_uuid, option_index, voted_at")
+        .eq("poll_id", poll.id),
+    ]);
+
+    const registered = (registeredRes.data || []).map((v) => {
+      const profile = profileMap[v.user_id];
+      return {
+        type: "registered",
+        label: profile?.email || profile?.full_name || v.user_id,
+        optionText: options[v.option_index] ?? `Option ${v.option_index + 1}`,
+        voted_at: v.voted_at,
+      };
+    });
+
+    const anonymous = (anonRes.data || []).map((v) => ({
+      type: "anonymous",
+      label: `Anonymous · ${v.voter_uuid.slice(0, 8)}…`,
+      optionText: options[v.option_index] ?? `Option ${v.option_index + 1}`,
+      voted_at: v.voted_at,
+    }));
+
+    const combined = [...registered, ...anonymous].sort(
+      (a, b) => new Date(b.voted_at) - new Date(a.voted_at)
+    );
+
+    setVoters(combined);
     setVotersLoading(false);
+  }
+
+  function copyEmbedLink(poll) {
+    if (!poll.public_uuid) {
+      alert("This poll doesn't have a public embed link yet.");
+      return;
+    }
+    const url = `${window.location.origin}/iframe/${poll.public_uuid}`;
+    navigator.clipboard.writeText(url);
+    alert("Embed link copied!\n" + url);
   }
 
   async function handleLogout() {
@@ -134,6 +160,8 @@ function AdminDashboard() {
   }
 
   const grandTotalVotes = polls.reduce((sum, p) => sum + totalVotes(p.votes), 0);
+  const registeredCount = voters.filter((v) => v.type === "registered").length;
+  const anonymousCount = voters.filter((v) => v.type === "anonymous").length;
 
   if (loading) {
     return (
@@ -383,6 +411,35 @@ function AdminDashboard() {
                   created by: {creatorLabel(poll)}
                 </p>
 
+                {!poll.created_by && (poll.creator_uuid || poll.creator_ip) && (
+                  <div style={{ margin: "0 0 4px" }}>
+                    {poll.creator_uuid && (
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: "#f5a623",
+                          fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                          margin: 0,
+                        }}
+                      >
+                        anon browser: {poll.creator_uuid.slice(0, 8)}…
+                      </p>
+                    )}
+                    {poll.creator_ip && (
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: "#7a7a8c",
+                          fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                          margin: "2px 0 0",
+                        }}
+                      >
+                        ip: {poll.creator_ip}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <p
                   style={{
                     fontSize: 12,
@@ -449,6 +506,21 @@ function AdminDashboard() {
                   >
                     {expandedVoters === poll.id ? "Hide voters ▲" : "View voters ▼"}
                   </button>
+                  <button
+                    onClick={() => copyEmbedLink(poll)}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid #2a2a38",
+                      color: "#6ee7a8",
+                      padding: "7px 14px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Copy embed link
+                  </button>
                 </div>
               </div>
             )}
@@ -472,60 +544,84 @@ function AdminDashboard() {
                     no votes yet
                   </p>
                 ) : (
-                  <div style={{ maxHeight: 240, overflowY: "auto", fontSize: 12 }}>
-                    {voters.map((v, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          padding: "8px 0",
-                          borderBottom: "1px solid #161620",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          gap: 12,
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <p
-                            style={{
-                              margin: 0,
-                              color: "#e2e2e8",
-                              fontWeight: 600,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {v.email}
-                          </p>
-                          <p
-                            style={{
-                              margin: "2px 0 0",
-                              color: "#7a7a8c",
-                              fontFamily: "'JetBrains Mono', 'Courier New', monospace",
-                              fontSize: 11,
-                            }}
-                          >
-                            {new Date(v.voted_at).toLocaleString()}
-                          </p>
-                        </div>
-                        <span
+                  <>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        marginBottom: 10,
+                        paddingBottom: 10,
+                        borderBottom: "1px solid #161620",
+                        fontSize: 11,
+                        fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                      }}
+                    >
+                      <span style={{ color: "#6ee7a8" }}>
+                        registered: {registeredCount}
+                      </span>
+                      <span style={{ color: "#f5a623" }}>
+                        anonymous (widget): {anonymousCount}
+                      </span>
+                    </div>
+                    <div style={{ maxHeight: 240, overflowY: "auto", fontSize: 12 }}>
+                      {voters.map((v, i) => (
+                        <div
+                          key={i}
                           style={{
-                            background: "rgba(139,124,240,0.12)",
-                            color: "#8b7cf0",
-                            padding: "4px 10px",
-                            borderRadius: 20,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            whiteSpace: "nowrap",
-                            flexShrink: 0,
+                            padding: "8px 0",
+                            borderBottom: "1px solid #161620",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: 12,
                           }}
                         >
-                          {v.optionText}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p
+                              style={{
+                                margin: 0,
+                                color: v.type === "anonymous" ? "#f5a623" : "#e2e2e8",
+                                fontWeight: 600,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                fontFamily:
+                                  v.type === "anonymous"
+                                    ? "'JetBrains Mono', 'Courier New', monospace"
+                                    : "inherit",
+                              }}
+                            >
+                              {v.label}
+                            </p>
+                            <p
+                              style={{
+                                margin: "2px 0 0",
+                                color: "#7a7a8c",
+                                fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                                fontSize: 11,
+                              }}
+                            >
+                              {new Date(v.voted_at).toLocaleString()}
+                            </p>
+                          </div>
+                          <span
+                            style={{
+                              background: "rgba(139,124,240,0.12)",
+                              color: "#8b7cf0",
+                              padding: "4px 10px",
+                              borderRadius: 20,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              whiteSpace: "nowrap",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {v.optionText}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}
