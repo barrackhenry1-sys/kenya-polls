@@ -149,6 +149,16 @@ function AdminDashboard() {
     alert("Embed link copied!\n" + url);
   }
 
+  function copyUserPollLink(poll) {
+    if (!poll.created_by) {
+      alert("This poll was created anonymously — no user link available.");
+      return;
+    }
+    const url = `${window.location.origin}/user-poll/${poll.created_by}`;
+    navigator.clipboard.writeText(url);
+    alert("User's latest-poll link copied!\n" + url);
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate("/admin");
@@ -521,6 +531,23 @@ function AdminDashboard() {
                   >
                     Copy embed link
                   </button>
+                  {poll.created_by && (
+                    <button
+                      onClick={() => copyUserPollLink(poll)}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid #2a2a38",
+                        color: "#f5a623",
+                        padding: "7px 14px",
+                        borderRadius: 8,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Copy user link
+                    </button>
+                  )}
                 </div>
               </div>
             )}

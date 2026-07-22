@@ -17,6 +17,7 @@ import IframeCreatePoll from "./components/IframeCreatePoll";
 import EditProfile from "./components/EditProfile";
 import IframePoll from "./components/IframePoll";
 import GlareHover from './components/GlareHover';
+import UserLatestPoll from "./components/UserLatestPoll";
 import "./App.css";
 
 
@@ -595,6 +596,7 @@ function App() {
   <Route path="/reset-password" element={<ResetPassword />} />
   <Route path="/iframe/:uuid" element={<IframePoll />} />
   <Route path="/iframe/create" element={<IframeCreatePoll />} />
+  <Route path="/user-poll/:userId" element={<UserLatestPoll />} />
   <Route
     path="/edit-profile"
     element={session ? <EditProfile session={session} /> : <Navigate to="/welcome" />}
