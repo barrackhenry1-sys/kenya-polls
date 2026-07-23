@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useParams, Link, Navigate } from "react-router-dom";
+import { Routes, Route, useParams, Link, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
 import PollCard from "./components/PollCard";
 import CreatePoll from "./components/CreatePoll";
@@ -30,6 +30,7 @@ function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
+  const location = useLocation();
 
   // Track login session
   useEffect(() => {
@@ -88,6 +89,23 @@ function App() {
 
     fetchPolls();
   }, []);
+
+  // Pick up a newly created poll passed back via navigation state
+  // (from CreatePoll.js's navigate("/", { state: { newPoll } })) and
+  // prepend it instantly, so the list is up to date without needing
+  // a manual refresh or a second network round-trip.
+  useEffect(() => {
+    if (location.state?.newPoll) {
+      const newPoll = location.state.newPoll;
+      setPollData((prev) => {
+        if (prev.some((p) => p.id === newPoll.id)) return prev;
+        return [...prev, newPoll];
+      });
+      // Clear the navigation state so this doesn't re-fire on
+      // back/forward navigation or a page refresh.
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Load this user's own votes once logged in
   useEffect(() => {

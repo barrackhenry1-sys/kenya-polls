@@ -51,19 +51,23 @@ function CreatePoll() {
     setSubmitting(true);
     setError(null);
 
-    const { error } = await supabase.from("polls").insert({
-      question: question.trim(),
-      options: filledOptions,
-      votes: new Array(filledOptions.length).fill(0),
-      created_by: userId,
-    });
+    const { data, error } = await supabase
+      .from("polls")
+      .insert({
+        question: question.trim(),
+        options: filledOptions,
+        votes: new Array(filledOptions.length).fill(0),
+        created_by: userId,
+      })
+      .select()
+      .single();
 
     if (error) {
       setError(error.message);
       setSubmitting(false);
       return;
     }
-    navigate("/");
+    navigate("/", { state: { newPoll: data } });
   }
 
   return (
